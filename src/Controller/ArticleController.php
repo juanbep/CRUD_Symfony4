@@ -8,14 +8,16 @@
 
 namespace App\Controller;
 
-
 use App\Entity\Article;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
+
 
 /**
  * Description of ArticleController
@@ -24,17 +26,19 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class ArticleController extends AbstractController {
     //put your code here
+    
+    
     /**
-   * @Route("/article", name="article")
-   */
+    * @Route("/article", name="article_list")
+    * @Method ({"GET"})
+    */
     public function article(){
-    $articles = ['Article 1','Article 2','Article 3','Article 4'];
-    
-    return $this->render('articles/index.html.twig', array
-      ('articles' => $articles));
+        $articles = ['Article 1','Article 2','Article 3','Article 4'];
+       // $articles = $this->getDoctrine()->getRepository(Article::class)->findAll();
+        return $this->render('articles/index.html.twig', array
+        ('articles' => $articles));
     }
-    
-    
+       
     /**
     * @Route ("/article/new", name="new_article")
     * Method ({"GET", "POST"})
@@ -51,12 +55,24 @@ class ArticleController extends AbstractController {
           'attr' =>array('class'=>'btn btn-primary mt-3')
         ))
         ->getForm();
-
+        
+        $form->handleRequest($request);
+        
+        if($form->isSubmitted() && $form->isValid()){
+            $article = $form->getData();
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($article);
+            $entityManager->flush();
+            
+            return $this->redirectToRoute('article_list');
+        }
+        
         return $this->render('articles/new.html.twig',array(
           'form'=>$form->createView()
   ));
 }
     
+
     
     
 
